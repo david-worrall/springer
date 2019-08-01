@@ -4,10 +4,27 @@
 #--------o---------o---------o- Returns class ---o---------o---------o---------o---------o---------o
 #--------o---------o---------o---------o---------o---------o---------o---------o---------o---------o
 
-- Converts trading or similar data to returns
+DISCLAIMER:
+THIS SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT 
+NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES 
+OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
+CONNECTION WITH THIS SOFTWARE OR THE USE OR OTHER DEALINGS IN THIS SOFTWARE.
+
+Copyright © 2004-2019 David Worrall 
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and 
+associated documentation files (the “Software”), to deal in the Software without restriction, 
+including without limitation the rights to use, copy, modify, merge, publish, distribute, 
+sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished
+ to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+- Converts trading or similar data in .csv file to returns
 - Produces correlated and decorrelated time series data
 - Generates stats and graphs
 - Outputs to AIFC, or other filetype
+- Python 3 compatible
 
 history:
 v0.00   20040902 initial draft
@@ -17,10 +34,11 @@ v0.03   20041024 minor bugs + improve toAIFC
 v0.20   20051209 objectify
 v0.21   20070126 reorder for np, scipy and matplotlib
 v0.22   20090110 redo plotting routines
-v0.23	to sonification.com.au/audification
+v0.23	20100228 to sonification.com.au/audification
+v0.24	20190228 convert to Python 3
 """
 __author__      = "David Worrall  2004++"
-__version__     = "0.2.2"
+__version__     = "0.2.4"
 __docformat__   = "restructuredtext en"
 
 import  string, ctypes, struct
@@ -35,8 +53,8 @@ import  matplotlib.pyplot   as plt      # interface to matplotlib plotting routi
 import  matplotlib.ticker   as ticker   # for controlling the axis labelling
 import  matplotlib.mlab     as mlab     # for plotting returns and histograms
 
-EOF = ''                            # End of File ID for readline
-BITS_15 = pow (2, 14)               # for bit-shifting 
+EOF = ''                                # End of File ID for readline
+BITS_15 = pow (2, 14)                   # for bit-shifting 
 
 #--------o---------o---------o---------o---------o---------o---------o---------o---------o---------o
 #--------o---------o---------o-- Generic Functions --------o---------o---------o---------o---------o
@@ -51,11 +69,12 @@ def printStringList (listy, stringy=None, ):
     for i in dir(listy):
         if i[0] != beg:
             beg=i[0]
-            print
+            print()
         else:
-            if stringy != None: print i ,
+            if stringy != None: print (i , end = "" )  # don't throw a new line 
+                                                       # for python 2 use  print i ,
             else:
-                if stringy in i:    print i
+                if stringy in i:    print (i )
 
 def marketTimeString (dtTuple):
     """
@@ -79,9 +98,9 @@ def scaleArray (np1array, miny=-1, maxy=1, trace=False):
     minAdjust=(scaler * np1array.min()) - miny
     np1array = (scaler * np1array) - minAdjust
     if trace:
-        print "newrange:", newrange, "--- scaler:", scaler, "--- minAdjust:", minAdjust
-        print "Xchecks. scaled returnsMinMax:", (np1array.min(), np1array.max())       
-    return np1array
+        print ("newrange:", newrange, "--- scaler:", scaler, "--- minAdjust:", minAdjust )
+        print ("Xchecks. scaled returnsMinMax:", (np1array.min(), np1array.max()) )      
+    return (np1array)
 
 #--------o---------o---------o---------o---------o---------o---------o---------o---------o---------o
 #--------o---------o---------o- Returns class ---o---------o---------o---------o---------o---------o
@@ -116,7 +135,7 @@ class Returns:
         try:
             self.IPfile = open(self.IPdatafile, 'r')
         except:
-            print "Unable to locate ",IPfname,". If file is not in cur. dir, use full pathname."
+            print ("Unable to locate ",IPfname,". If file is not in cur. dir, use full pathname." )
             return
         self.getDataFormat()
         self.getDataFromFile()
@@ -148,13 +167,13 @@ class Returns:
                 if self.fields[i] == self.fieldName:
                     self.fieldNr = i
             if self.fieldNr == -1:
-                print "Unable to locate ", self.fieldName, " in ", self.dataFormat, \
-                        ". Check (non case-sensitive) spelling."
+                print ("Unable to locate ", self.fieldName, " in ", self.dataFormat, \
+                        ". Check (non case-sensitive) spelling." )
             if trace:
-                print "datafields   :", self.dataFormat
-                print "Datafield '", self.fieldName ,"' is col ", self.fieldNr, ". File is closed."
+                print ("datafields   :", self.dataFormat )
+                print ("Datafield '", self.fieldName ,"' is col ", self.fieldNr, ". File is closed." )
         except:
-                print "Problem with data read."
+                print ("Problem with data read." )
 
 #--------o---------o---------o---------o---------o---------o---------o---------o---------o---------o
     def secDateToDT (self, dateString):
@@ -189,12 +208,12 @@ class Returns:
             tbuff=self.IPfile.readline()                        # read 1 new line from file
             count += 1
             if trace:
-                print "record Nr:", count, dayte                        
+                print ("record Nr:", count, dayte)                        
 #       --------------- Make the np array for all the data --------------# row0 4 data, row1 4 Rnet,
         self.returnsArray=np.empty([5, len (datafromFile)], dtype=float) # row2 4 normalised
         self.nrRecords = len (datafromFile)
         if trace:
-            print "Length of returnsArray = ", self.nrRecords       # len (datafromFile)
+            print ("Length of returnsArray = ", self.nrRecords)     # len (datafromFile)
         self.returnsArray[self.origDataIx] = datafromFile           # transfer list to np array
 
     def calculateReturns (self):
@@ -247,18 +266,18 @@ class Returns:
         self.returnsStats[4] = np.var(self.returnsArray[self.returnsIx])
         self.returnsStats.append(np.median(self.returnsArray[self.returnsIx]))
         if trace:
-            print "Description\n-----------" 
-            print" nr samples ", self.returnsStats[0]
-            print" min sample ", self.returnsStats[1][0]
-            print" max sample  ", self.returnsStats[1][1]
-            print" arith mean  ", self.returnsStats[2]
-            print " median      ", self.returnsStats[6]
-            print " mode        ", stats.stats.mode(self.returnsArray[self.returnsIx])[0][0]
-            print" variance    ", self.returnsStats[3]
-            print" skewness    ", self.returnsStats[4]
-            print" kurtosis   ", self.returnsStats[5]
-#           print " kurtosos test", stats.stats.kurtosistest(self.returnsArray[self.returnsIx])
-#           print " normal test", stats.stats.normaltest(self.returnsArray[self.returnsIx])
+            print ("Description\n-----------" )
+            print (" nr samples ", self.returnsStats[0] )
+            print (" min sample ", self.returnsStats[1][0] )
+            print (" max sample  ", self.returnsStats[1][1] )
+            print (" arith mean  ", self.returnsStats[2] )
+            print (" median      ", self.returnsStats[6] )
+            print (" mode        ", stats.stats.mode(self.returnsArray[self.returnsIx])[0][0] )
+            print (" variance    ", self.returnsStats[3] )
+            print (" skewness    ", self.returnsStats[4] )
+            print (" kurtosis   ", self.returnsStats[5] )
+#           print (" kurtosos test", stats.stats.kurtosistest(self.returnsArray[self.returnsIx]) )
+#           print (" normal test", stats.stats.normaltest(self.returnsArray[self.returnsIx]) )
 
     def clipReturns (self, nrMin=0, nrMax=0, trace=False):
         """
@@ -289,14 +308,14 @@ class Returns:
                 self.returnsArray[self.returnsIx][index]=posLimit    # fill it with most +ve inlies
         self.doStats()                                  # set the records straight!
         if trace:
-            print "Neg limit", nrMin, " vals to", negLimit
-            print "Pos limit", nrMax, " vals to", posLimit
-            print "-ve indexes to fix with %f:" % (negLimit)
+            print ("Neg limit", nrMin, " vals to", negLimit )
+            print ("Pos limit", nrMax, " vals to", posLimit )
+            print ("-ve indexes to fix with %f:" % (negLimit) )
             for i in negIndicesToLimit:
-                print "\treturns [%i] is currently %f" %(i, self.returnsArray[self.returnsIx][i])
-            print "+ve indexes to fix with  %f:" % (posLimit)
+                print ("\treturns [%i] is currently %f" %(i, self.returnsArray[self.returnsIx][i]) )
+            print ( "+ve indexes to fix with  %f:" % (posLimit) )
             for i in posIndicesToLimit:
-                print "\treturns [%i] is currently %f" %(i, self.returnsArray[self.returnsIx][i])
+                print ( "\treturns [%i] is currently %f" %(i, self.returnsArray[self.returnsIx][i]) )
 
     def arrayToAIFC (self, np1array, OPfname,
                  nrchans    = 1,
@@ -334,7 +353,7 @@ class Returns:
         OPfileID.close()
         if trace:
             numsamps = int(len(np1array)) + (gapSecs * SR * nrchans)
-            print "Wrote %s.aifc, nrChans: %d, nrSamps: %d." % (OPfname, nrchans, numsamps)
+            print ( "Wrote %s.aifc, nrChans: %d, nrSamps: %d." % (OPfname, nrchans, numsamps) )
 
 #--------o---------o---------o---------o---------o---------o---------o---------o---------o---------o
 #----------------------------unfinished -------------------
@@ -374,7 +393,7 @@ class Returns:
         OPfileID.close()
         if trace:
             numsamps = int(len(np1array)) + (gapSecs * SR * nrchans)
-            print "Wrote %s.wav, nrChans: %d, nrSamps: %d." % (OPfname, nrchans, numsamps)
+            print ("Wrote %s.wav, nrChans: %d, nrSamps: %d." % (OPfname, nrchans, numsamps) )
 #----------------------------end unfinished -------------------
 
 #--------o---------o---------o---------o---------o---------o---------o---------o---------o---------o        
@@ -388,7 +407,7 @@ class Returns:
             if OPdir[-1] != path.sep:                           # '/' on unix etc, '\' on windows
                 OPdir += path.sep                               # in case it has been left off 
         if not path.isdir (OPdir):
-            print "The directory to write to cannot be found."
+            print ("The directory to write to cannot be found." )
 
         # Construct the filenames
         shortFname = self.IPdatafile.split(path.sep)[-1].split(path.extsep)[0]
@@ -423,19 +442,19 @@ class Returns:
         b7 = np.concatenate((np.random.permutation(b2), b0, np.random.permutation(b2), b0, b1,))
         
         if trace:
-            print "Range cross-check:"
-            print "     Array           Min    Max"
-            print " _____________________________________"
-            print "     ReturnsRaw_    %.2f   %.2f" %  (b1.min(), b1.max())
-            print "     RtnsDecorr_    %.2f   %.2f" %  (b2.min(), b2.max())
-            print "    RtnsUniform_    %.2f   %.2f" %  (b3.min(), b3.max())
-            print "     RtnsNormal_    %.2f   %.2f" %  (b4.min(), b4.max())
-            print "  CorrAndDecorr_    %.2f   %.2f" %  (retAndDecorrArray.min(),
-                                                        retAndDecorrArray.max())
-            print "uniNormDecorRtn_    %.2f   %.2f" %  (UNDRtnArray.min(), UNDRtnArray.max())
-            print "   ret+1xdcorr1_    %.2f   %.2f" %  (b5.min(), b5.max())
-            print "   ret+1xdcorr2_    %.2f   %.2f" %  (b6.min(), b6.max())
-            print "   ret+2xdcorr3_    %.2f   %.2f" %  (b7.min(), b7.max())
+            print ("Range cross-check:" )
+            print ("     Array           Min    Max" )
+            print (" _____________________________________" )
+            print ("     ReturnsRaw_    %.2f   %.2f" %  (b1.min(), b1.max()) )
+            print ("     RtnsDecorr_    %.2f   %.2f" %  (b2.min(), b2.max()) )
+            print ("    RtnsUniform_    %.2f   %.2f" %  (b3.min(), b3.max()) )
+            print ("     RtnsNormal_    %.2f   %.2f" %  (b4.min(), b4.max()) )
+            print ("  CorrAndDecorr_    %.2f   %.2f" %  (retAndDecorrArray.min(),
+                                                        retAndDecorrArray.max()) )
+            print ("uniNormDecorRtn_    %.2f   %.2f" %  (UNDRtnArray.min(), UNDRtnArray.max()) )
+            print ("   ret+1xdcorr1_    %.2f   %.2f" %  (b5.min(), b5.max()) )
+            print ("   ret+1xdcorr2_    %.2f   %.2f" %  (b6.min(), b6.max()) )
+            print ("   ret+2xdcorr3_    %.2f   %.2f" %  (b7.min(), b7.max()) )
         
         # send multiples of the individual arrays  off to the audio OP routine
         self.arrayToAIFC (b1, rtnFname,     SR=SR, nrReps = 3, gapSecs = 1, trace=trace)
@@ -451,7 +470,7 @@ class Returns:
         self.arrayToAIFC (b6, ret1dc2Fname,  SR=SR, trace=trace)
         self.arrayToAIFC (b7, ret1dc3Fname,  SR=SR, trace=trace)
         
-        print "Finished writing audio files to", OPdir + shortFname
+        print ("Finished writing audio files to", OPdir + shortFname )
         # send multiples of the individual arrays  off to the audio OP routine
 #        self.arrayToWAV (b1, rtnFname,     SR=SR, nrReps = 3, gapSecs = 1, trace=True)
 #        self.arrayToWAV (b2, decorrFname,  SR=SR, nrReps = 3, gapSecs = 1, trace=True)
@@ -540,12 +559,12 @@ def histNormal (color='000000', trace = False):
     pylab.hist(normSamps, nrbins, facecolor=color, align='mid' ,bottom=None, \
                label='simulated normal\ndistrib. with same StD.', alpha=1)
     if trace:
-        print "histy:", np.sum(histy) # ,histy
-        print "binEdges", np.sum(binEdges) #, binEdges
-        print 'size of normSamps:', len(normSamps)
-        print ' sum of hist:', histy.sum()
-        print "over same abscissa:", np.min(normSamps), np.max(normSamps)
-        print "over SND histogram",  np.min(histy), np.max(histy)
+        print ("histy:", np.sum(histy) )							# ,histy
+        print ("binEdges", np.sum(binEdges) )						#, binEdges
+        print ("size of normSamps:", len(normSamps) )
+        print ("sum of hist:", histy.sum() )
+        print ("over same abscissa:", np.min(normSamps), np.max(normSamps) )
+        print ("over SND histogram",  np.min(histy), np.max(histy) )
 
 def xAxis ():
     ax=pylab.subplot (111)
