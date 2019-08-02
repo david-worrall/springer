@@ -35,7 +35,7 @@ v0.20   20051209 objectify
 v0.21   20070126 reorder for np, scipy and matplotlib
 v0.22   20090110 redo plotting routines
 v0.23	20100228 to sonification.com.au/audification
-v0.24	20190228 convert to Python 3
+v0.24	20190228 convert to Python 3; comment out unneeded pyaudio import
 """
 __author__      = "David Worrall  2004++"
 __version__     = "0.2.4"
@@ -47,7 +47,8 @@ from    datetime   import datetime
 from    scipy      import stats
 import  numpy   as np                   # hurray for arrays!
 
-import  aifc, pyaudio                   # for file writing and rt audio streaming
+# import  aifc, pyaudio                   # for file writing and rt audio streaming
+import  aifc
 import  pylab 
 import  matplotlib.pyplot   as plt      # interface to matplotlib plotting routines
 import  matplotlib.ticker   as ticker   # for controlling the axis labelling
@@ -200,6 +201,7 @@ class Returns:
         tbuff=self.IPfile.readline()
         count = 0
         datafromFile = []   # list into which file data is read, elt by elt
+        self.nrRecords = len (datafromFile)
         while tbuff != EOF and self.nrRecords < count:
             tbuff=tbuff.split(self.sep)                     # NB default for self.nrRecords = None
 #            dayte = tbuff[self.datefield].replace('/',"")      # convert date string into an int
