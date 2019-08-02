@@ -15,8 +15,22 @@ The files in this directory
 - audio-7-4_netReturns.wav
 - audio-7-4_uniform.wav
 
-- XAO_5725.csv is the original dataset
+- XAO_5725.csv is the original daily securities dataset
 
-- returns.py 
-	Python 3 code to process the data and generate the audio examples.
+- returns.py generates the returns data from XAO_5725.csv
+
+The individual chunks of audio used as tables to generate the above examples with the the csound code for the table modulation technique  are
+
+- rtnsUniform.aiff	Uniform distribution:		
+- rtnsNormal.aiff	Normal distribution:		
+- rtnsRaw.aiff		Net Returns:			
+- rtnsDecorr.aiff		Decorrelated Net Returns
+
+The sound code for this modulation technique is presented in two formats:
+- codeExample7-1.orc
+- codeExample7-1.csd	
+
+See further explanatory comments in those files.
+
+
 
