@@ -12,6 +12,9 @@ or, in the UK: https://www.springer.com/gb/book/9783030014964
 This repository contains code and audio examples for the latter (example) chapters of this book, generated with python and csound.
 
 NB: ====================================================================
-The code in this repository is not fit, as is,  for production purposes.
- It is provided for illustrative purposes only.
+
+The code in this repository is not intended to be used for production purposes.
+
+It is provided for illustrative purposes only.
+
 NB: ====================================================================
